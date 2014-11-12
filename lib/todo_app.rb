@@ -17,7 +17,7 @@ class TodoApp < CommandLineApp
       if input == 'list'
         list_projects
       elsif input == 'create'
-        create_project
+        create_a_project
       elsif input == 'delete'
         delete_a_project
       elsif input == 'rename'
@@ -30,7 +30,7 @@ class TodoApp < CommandLineApp
     end
   end
 
-  def create_project
+  def create_a_project
     puts "Please enter the new project name:\n"
     new_project = gets.chomp
     add_project(new_project)
@@ -72,33 +72,13 @@ class TodoApp < CommandLineApp
     while task_menu_running
       task_input = gets.chomp
       if task_input == 'list'
-        puts "  #{print_tasks(project)}"
+        list_tasks(project)
       elsif task_input == 'create'
-        puts "Please enter the task you would like to add."
-        task = gets.chomp
-        add_task_to_project(project, task)
+        create_a_task(project)
       elsif task_input == 'edit'
-        puts "Please enter the task you would like to edit."
-        task = gets.chomp
-        if valid_task?(project, task)
-          puts "Please enter the new task name:\n"
-          new_task_name = gets.chomp
-          delete_task(project, task)
-          add_task_to_project(project, new_task_name)
-        else
-          puts "task not found: 'not here'"
-        end
+        edit_a_task(project)
       elsif task_input == 'complete'
-        puts "Which task have you completed?"
-        puts "  #{print_tasks(project)}"
-        task = gets.chomp
-        if valid_task?(project, task)
-          delete_task(project, task)
-          task = "#{task}: completed"
-          add_task_to_project(project, task)
-        else
-          puts "task not found: 'not here'"
-        end
+        complete_a_task(project)
       elsif task_input == 'back'
         print_project_menu
         task_menu_running = false
@@ -106,6 +86,38 @@ class TodoApp < CommandLineApp
         app_running = false
         task_menu_running = false
       end
+    end
+  end
+
+  def create_a_task (project)
+    puts "Please enter the task you would like to add."
+    task = gets.chomp
+    add_task_to_project(project, task)
+  end
+
+  def edit_a_task(project)
+    puts "Please enter the task you would like to edit."
+    task = gets.chomp
+    if valid_task?(project, task)
+      puts "Please enter the new task name:\n"
+      new_task_name = gets.chomp
+      delete_task(project, task)
+      add_task_to_project(project, new_task_name)
+    else
+      puts "task not found: 'not here'"
+    end
+  end
+
+  def complete_a_task(project)
+    puts "Which task have you completed?"
+    puts "  #{print_tasks(project)}"
+    task = gets.chomp
+    if valid_task?(project, task)
+      delete_task(project, task)
+      task = "#{task}: completed"
+      add_task_to_project(project, task)
+    else
+      puts "task not found: 'not here'"
     end
   end
 
@@ -129,6 +141,10 @@ class TodoApp < CommandLineApp
 
   def list_projects
     puts "Projects:\n  #{print_projects} "
+  end
+
+  def list_tasks(project)
+    puts "  #{print_tasks(project)}"
   end
 
   def print_tasks(project)
