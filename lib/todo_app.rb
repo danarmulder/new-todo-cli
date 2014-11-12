@@ -4,115 +4,142 @@ class TodoApp < CommandLineApp
     @output = output
     @projects = []
     @tasks = []
+    @projects_and_tasks = {}
   end
 
   def run
+    print_project_menu
+
+    app_running = true
+
+    while app_running
+      input = gets.chomp
+      if input == 'list'
+        list_projects
+      elsif input == 'create'
+        create_project
+      elsif input == 'delete'
+        delete_a_project
+      elsif input == 'rename'
+        rename_the_project
+      elsif input == 'edit'
+        edit_the_project
+      elsif input == 'quit'
+        app_running = false
+      end
+    end
+  end
+
+  def create_project
+    puts "Please enter the new project name:\n"
+    new_project = gets.chomp
+    add_project(new_project)
+    print_project_menu
+  end
+
+  def delete_a_project
+    puts "Please enter the project name to delete:\n"
+    project = gets.chomp
+    if valid_project_name?(project)
+      delete_project(project)
+    end
+  end
+
+  def rename_the_project
+    puts "Please enter the project name to rename:\n"
+    project = gets.chomp
+    if valid_project_name?(project)
+      puts "Please enter the new project name:\n"
+      new_project_name = gets.chomp
+      delete_project(project)
+      add_project(new_project_name)
+    end
+  end
+
+  def edit_the_project
+    puts "Which project would you like to edit?\n"
+    puts "Projects:\n  *#{print_projects} "
+    project = gets.chomp
+    if valid_project_name?(project)
+      puts "Editing Project: #{project} "
+      print_task_menu
+      editing_tasks_for_this(project)
+    end
+  end
+
+  def editing_tasks_for_this(project)
+    task_menu_running = true
+    while task_menu_running
+      task_input = gets.chomp
+      if task_input == 'list'
+        puts "  #{print_tasks(project)}"
+      elsif task_input == 'create'
+        puts "Please enter the task you would like to add."
+        task = gets.chomp
+        add_task_to_project(project, task)
+      elsif task_input == 'edit'
+        puts "Please enter the task you would like to edit."
+        task = gets.chomp
+        if valid_task?(project, task)
+          puts "Please enter the new task name:\n"
+          new_task_name = gets.chomp
+          delete_task(project, task)
+          add_task_to_project(project, new_task_name)
+        else
+          puts "task not found: 'not here'"
+        end
+      elsif task_input == 'complete'
+        puts "Which task have you completed?"
+        puts "  #{print_tasks(project)}"
+        task = gets.chomp
+        if valid_task?(project, task)
+          delete_task(project, task)
+          task = "#{task}: completed"
+          add_task_to_project(project, task)
+        else
+          puts "task not found: 'not here'"
+        end
+      elsif task_input == 'back'
+        print_project_menu
+        task_menu_running = false
+      elsif task_input == 'quit'
+        app_running = false
+        task_menu_running = false
+      end
+    end
+  end
+
+  #Printer
+
+  def print_project_menu
     puts "Welcome"
     puts "'list' to list projects"
     puts "'create' to create a new project"
     puts "'edit' to edit a project"
     puts "'rename' to rename a project"
     puts "'delete' to rename a project"
-
-    welcome_menu = true
-
-
-    while welcome_menu
-      input = gets.chomp
-      if input == 'list'
-        puts "Projects:\n  #{print_projects} "
-
-      elsif input == 'create'
-        puts "Please enter the new project name:\n"
-        create_project = gets.chomp
-        @projects << create_project
-        run
-
-      elsif input == 'delete'
-        puts "Please enter the project name to delete:\n"
-        delete_project = gets.chomp
-        if @projects.include?(delete_project)
-          @projects.delete(delete_project)
-        end
-
-      elsif input == 'rename'
-        puts "Please enter the project name to rename:\n"
-        rename_project = gets.chomp
-        if @projects.include?(rename_project)
-          puts "Please enter the new project name:\n"
-          new_project_name = gets.chomp
-          @projects.delete(rename_project)
-          @projects << new_project_name
-        end
-
-      elsif input == 'edit'
-        puts "Which project would you like to edit?\n"
-        puts "Projects:\n  *#{print_projects} "
-        edit_project = gets.chomp
-        if @projects.include?(edit_project)
-          puts "Editing Project: #{print_projects} "
-          puts "'list' to list tasks"
-          puts "'create' to create a new task"
-          puts "'edit' to edit a task"
-          puts "'complete' to complete a task and remove it from the list"
-
-
-          task_menu = true
-          while task_menu
-            task_input = gets.chomp
-            if task_input == 'list'
-              puts "  #{list_tasks}"
-            elsif task_input == 'create'
-              puts "Please enter the task you would like to add."
-              new_task = gets.chomp
-              @tasks << new_task
-            elsif task_input == 'edit'
-              puts "Please enter the task you would like to edit."
-              edit_task = gets.chomp
-              if @tasks.include?(edit_task)
-                puts "Please enter the new task name:\n"
-                new_task_name = gets.chomp
-                @tasks.delete(edit_task)
-                @tasks << new_task_name
-              else
-                puts "task not found: 'not here'"
-              end
-            elsif task_input == 'complete'
-              puts "Which task have you completed?"
-              puts "  #{list_tasks}"
-              complete_task = gets.chomp
-              if @tasks.include?(complete_task)
-                @tasks.delete(complete_task)
-                complete_task = "#{complete_task}: completed"
-                @tasks << complete_task
-              else
-                puts "task not found: 'not here'"
-              end
-            elsif task_input == 'back'
-              run
-              task_menu = false
-            elsif task_input == 'quit'
-              welcome_menu = false
-              task_menu = false
-            end
-          end
-        end
-
-      elsif input == 'quit'
-        welcome_menu = false
-      end
-    end
   end
 
-  def list_tasks
-    list_tasks =''
-    if @tasks == []
+  def print_task_menu
+    puts "'list' to list tasks"
+    puts "'create' to create a new task"
+    puts "'edit' to edit a task"
+    puts "'complete' to complete a task and remove it from the list"
+  end
+
+  def list_projects
+    puts "Projects:\n  #{print_projects} "
+  end
+
+  def print_tasks(project)
+    print_tasks =''
+    if @projects_and_tasks[project] == []
       "none"
     else
-      list_tasks = @tasks.each do |name|
+      print_tasks = @projects_and_tasks[project].each do |name|
          name
       end
-      list_tasks.join
+      print_tasks.join(" ")
     end
   end
 
@@ -124,9 +151,52 @@ class TodoApp < CommandLineApp
       list_names = @projects.each do |name|
         name
       end
-      list_names.join
+      list_names.join(" ")
     end
   end
+
+  #Data
+  def add_project(new_project)
+    @projects << new_project
+    task = []
+    create_project_in_task_hash(new_project, task)
+  end
+
+  def valid_project_name?(project_name)
+    if @projects.include?(project_name)
+      true
+    else
+      false
+    end
+  end
+
+  def delete_project(project)
+    @projects.delete(project)
+  end
+
+
+  def create_project_in_task_hash (project, task)
+    @projects_and_tasks.merge!(project => task)
+  end
+
+  def add_task_to_project (project, task)
+    @projects_and_tasks[project].push(task)
+  end
+
+  def valid_task?(project, task)
+    if @projects_and_tasks[project].include?(task)
+      true
+    else
+      false
+    end
+  end
+
+  def delete_task(project, task)
+    @projects_and_tasks[project].delete(task)
+  end
+
+
+
 
   def real_puts message = ""
     $stdout.puts message
