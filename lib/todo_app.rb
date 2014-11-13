@@ -2,8 +2,6 @@ class TodoApp < CommandLineApp
   def initialize(input, output)
     @input = input
     @output = output
-    @projects = []
-    @tasks = []
     @projects_and_tasks = {}
   end
 
@@ -155,31 +153,28 @@ class TodoApp < CommandLineApp
       print_tasks = @projects_and_tasks[project].each do |name|
          name
       end
-      print_tasks.join(" ")
+    puts print_tasks.join(" ")
     end
   end
 
   def print_projects
-    list_names = ''
-    if @projects == []
+    list_project_names = ''
+    if @projects_and_tasks == {}
       "none"
     else
-      list_names = @projects.each do |name|
-        name
-      end
-      list_names.join(" ")
+      list_project_names = @projects_and_tasks.keys
+      list_project_names.join(" ")
     end
   end
 
   #Data
-  def add_project(new_project)
-    @projects << new_project
-    task = []
-    create_project_in_task_hash(new_project, task)
+  def add_project(project)
+    tasks = []
+    @projects_and_tasks.merge!(project => tasks)
   end
 
   def valid_project_name?(project_name)
-    if @projects.include?(project_name)
+    if @projects_and_tasks.include?(project_name)
       true
     else
       false
@@ -187,12 +182,7 @@ class TodoApp < CommandLineApp
   end
 
   def delete_project(project)
-    @projects.delete(project)
-  end
-
-
-  def create_project_in_task_hash (project, task)
-    @projects_and_tasks.merge!(project => task)
+    @projects_and_tasks.delete(project)
   end
 
   def add_task_to_project (project, task)
@@ -210,9 +200,6 @@ class TodoApp < CommandLineApp
   def delete_task(project, task)
     @projects_and_tasks[project].delete(task)
   end
-
-
-
 
   def real_puts message = ""
     $stdout.puts message
